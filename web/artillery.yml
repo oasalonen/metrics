@@ -1,0 +1,16 @@
+config:
+  target: 'http://localhost:9021'
+  phases:
+    - duration: 60
+      arrivalRate: 2
+      rampTo: 10
+    - duration: 60
+      arrivalRate: 1
+      rampTo: 20
+    - duration: 600
+      arrivalRate: 10
+      rampTo: 50
+scenarios:
+  - flow:
+    - get:
+        url: "/ping"

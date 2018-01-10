@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 5s
+  scrape_timeout: 4s
+  evaluation_interval: 1m
+scrape_configs:
+- job_name: myserver
+  metrics_path: /metrics
+  scheme: http
+  static_configs:
+    - targets: ['web:9021']
+  scrape_interval: 5s
+  scrape_timeout: 4s
