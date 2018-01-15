@@ -169,7 +169,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "sum(rate(ping_endpoint[30s]))",
+              "expr": "sum(rate(api_http_requests_total[30s]))",
               "format": "time_series",
               "instant": false,
               "intervalFactor": 2,
@@ -233,7 +233,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(ping_endpoint[30s])",
+              "expr": "rate(api_http_requests_total[30s])",
               "format": "time_series",
               "intervalFactor": 2,
               "refId": "B"

@@ -3,20 +3,51 @@ const prom = require('prom-client');
 const fetch = require('node-fetch');
 
 const PORT = 9021;
-const SIMULATE_FAILURE = true;
+let simulateErrors = false;
+let versionNumber = 1;
 
 const app = express();
 
 const counter = new prom.Counter({
-    name: 'ping_endpoint',
-    help: 'ping_endpoint_help',
-    labelNames: ['method', 'statusCode']
+    name: 'api_http_requests_total',
+    help: 'api_http_requests_total_help',
+    labelNames: ['endpoint', 'method', 'statusCode']
 });
+
+function incrementApiCounter(req, res) {
+    counter.inc({
+        enpoint: req.path,
+        method: req.method, 
+        statusCode: res.statusCode
+    });
+}
+
 app.get('/ping', (req, res) => {
-    console.log('ping endpoint hit');
-    const status = SIMULATE_FAILURE && Math.random() > 0.8 ? 500 : 200; 
-    counter.inc({ method: 'GET', statusCode: status });
+    const status = simulateErrors && Math.random() > 0.8 ? 500 : 200; 
     res.status(status).end();
+    incrementApiCounter(req, res);
+});
+
+app.post('/deploy', (req, res) => {
+    versionNumber++;
+    simulateErrors = JSON.parse(req.query.simulateErrors);
+
+    fetch('http://grafana:3000/api/annotations', {
+        method: 'POST',
+        headers: { 
+            'Accepts': 'application-json',
+            'Content-Type': 'application-json',
+            'Authorization': 'Basic ' + Buffer.from('admin:admin').toString('base64')
+        },
+        body: JSON.stringify({
+            time: Date.now(),
+            tags: ["deploy"],
+            text: `Web app deployed: v.${versionNumber}`
+        })
+    });
+
+    res.status(201).end();
+    incrementApiCounter(req, res);
 });
 
 app.get('/metrics', (req, res) => {
@@ -27,20 +58,6 @@ app.get('/metrics', (req, res) => {
 
 app.listen(PORT, () => { 
     console.log('Listening...');
-});
-
-fetch('http://grafana:3000/api/annotations', {
-    method: 'POST',
-    headers: { 
-        'Accepts': 'application-json',
-        'Content-Type': 'application-json',
-        'Authorization': 'Basic ' + Buffer.from('admin:admin').toString('base64')
-    },
-    body: JSON.stringify({
-        time: Date.now(),
-        tags: ["deploy"],
-        text: "Web app deployed"
-    })
 });
 
 prom.collectDefaultMetrics({timeout: 5000});
