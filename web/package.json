@@ -12,7 +12,8 @@
   "dependencies": {
     "express": "^4.16.2",
     "node-fetch": "^1.7.3",
-    "prom-client": "^10.2.2"
+    "prom-client": "^10.2.2",
+    "response-time": "^2.3.2"
   },
   "devDependencies": {
     "artillery": "^1.6.0-12"

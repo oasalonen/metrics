@@ -1,6 +1,7 @@
 const express = require('express');
 const prom = require('prom-client');
 const fetch = require('node-fetch');
+const responseTime  = require('response-time');
 
 const PORT = 9021;
 let simulateErrors = false;
@@ -14,6 +15,12 @@ const counter = new prom.Counter({
     labelNames: ['endpoint', 'method', 'statusCode']
 });
 
+const timeGauge = new prom.Gauge({
+    name: 'api_http_response_time',
+    help: 'api_http_response_time_help',
+    labelNames: ['endpoint', 'method', 'statusCode']
+});
+
 function incrementApiCounter(req, res) {
     counter.inc({
         enpoint: req.path,
@@ -21,6 +28,14 @@ function incrementApiCounter(req, res) {
         statusCode: res.statusCode
     });
 }
+
+app.use(responseTime(function (req, res, time) {
+    timeGauge.set({
+        endpoint: req.path,
+        method: req.method,
+        statusCode: res.statusCode
+    }, time);
+}));
 
 app.get('/ping', (req, res) => {
     const status = simulateErrors && Math.random() > 0.8 ? 500 : 200; 
